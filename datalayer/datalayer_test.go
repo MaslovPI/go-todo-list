@@ -147,6 +147,88 @@ func TestListUnfinishedTasks(t *testing.T) {
 	})
 }
 
+func TestDelete(t *testing.T) {
+	timeProvider := DummyTimeProvider{}
+	timeProvider.timeStamp = time.Now()
+	t.Run("Task exists", func(t *testing.T) {
+		var id uint = 999
+		want := Task{
+			ID:          id,
+			Description: "test",
+			CreatedAt:   timeProvider.timeStamp,
+			IsComplete:  false,
+		}
+
+		vault := MapTaskVault{
+			db:     map[uint]Task{id: want},
+			lastId: id,
+		}
+		err := DeleteTask(id, &vault)
+		assertNoError(t, err)
+
+		_, err = GetTask(id, &vault)
+		assertError(t, err, ErrNotFound)
+	})
+	t.Run("Task doesn't exists", func(t *testing.T) {
+		var id uint = 999
+		vault := NewMapTaskVault()
+
+		err := DeleteTask(id, vault)
+		assertError(t, err, ErrTaskDoesNotExist)
+	})
+}
+
+func TestComplete(t *testing.T) {
+	timeProvider := DummyTimeProvider{}
+	timeProvider.timeStamp = time.Now()
+	t.Run("Uncomplete task exists", func(t *testing.T) {
+		var id uint = 999
+		originalTask := Task{
+			ID:          id,
+			Description: "test",
+			CreatedAt:   timeProvider.timeStamp,
+			IsComplete:  false,
+		}
+
+		vault := MapTaskVault{
+			db:     map[uint]Task{id: originalTask},
+			lastId: id,
+		}
+		err := CompleteTask(id, &vault)
+		assertNoError(t, err)
+
+		got, err := GetTask(id, &vault)
+		assertNoError(t, err)
+		want := originalTask
+		want.IsComplete = true
+
+		assertTasksEqual(t, got, want)
+	})
+	t.Run("Complete task exists", func(t *testing.T) {
+		var id uint = 999
+		originalTask := Task{
+			ID:          id,
+			Description: "test",
+			CreatedAt:   timeProvider.timeStamp,
+			IsComplete:  true,
+		}
+
+		vault := MapTaskVault{
+			db:     map[uint]Task{id: originalTask},
+			lastId: id,
+		}
+		err := CompleteTask(id, &vault)
+		assertError(t, err, ErrTaskAlreadyComplete)
+	})
+	t.Run("Task doesn't exists", func(t *testing.T) {
+		var id uint = 999
+		vault := NewMapTaskVault()
+
+		err := CompleteTask(id, vault)
+		assertError(t, err, ErrTaskDoesNotExist)
+	})
+}
+
 func assertNoError(t testing.TB, err error) {
 	t.Helper()
 	if err != nil {
