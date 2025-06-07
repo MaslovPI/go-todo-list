@@ -1,6 +1,8 @@
 package datalayer
 
 import (
+	"maps"
+	"slices"
 	"time"
 )
 
@@ -37,6 +39,8 @@ type TaskVault interface {
 	add(task Task)
 	get(id uint) (Task, error)
 	getNextId() uint
+	list() []Task
+	listUnfinished() []Task
 }
 
 type MapTaskVault struct {
@@ -64,9 +68,25 @@ func (m *MapTaskVault) get(id uint) (Task, error) {
 	return task, nil
 }
 
+func (m *MapTaskVault) list() []Task {
+	return slices.Collect(maps.Values(m.db))
+}
+
+func (m *MapTaskVault) listUnfinished() []Task {
+	return slices.Collect(func(yield func(Task) bool) {
+		for _, task := range slices.Collect(maps.Values(m.db)) {
+			if !task.IsComplete {
+				if !yield(task) {
+					return
+				}
+			}
+		}
+	})
+}
+
 func (m *MapTaskVault) getNextId() uint {
 	m.lastId++
-	return uint(m.lastId)
+	return m.lastId
 }
 
 func AddTask(description string, vault TaskVault, timeProvider TimeProvider) (uint, error) {
@@ -88,4 +108,12 @@ func AddTask(description string, vault TaskVault, timeProvider TimeProvider) (ui
 func GetTask(id uint, vault TaskVault) (Task, error) {
 	task, err := vault.get(id)
 	return task, err
+}
+
+func ListAllTasks(vault TaskVault) []Task {
+	return vault.list()
+}
+
+func ListUnfinishedTasks(vault TaskVault) []Task {
+	return vault.listUnfinished()
 }

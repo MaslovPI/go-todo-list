@@ -72,6 +72,81 @@ func TestGet(t *testing.T) {
 	})
 }
 
+func TestListAllTasks(t *testing.T) {
+	timeProvider := DummyTimeProvider{}
+	timeProvider.timeStamp = time.Now()
+	t.Run("List tasks full vault", func(t *testing.T) {
+		taskIncomplete := Task{
+			ID:          998,
+			Description: "test",
+			CreatedAt:   timeProvider.timeStamp,
+			IsComplete:  false,
+		}
+		taskComplete := Task{
+			ID:          999,
+			Description: "test complete",
+			CreatedAt:   timeProvider.timeStamp,
+			IsComplete:  true,
+		}
+
+		vault := MapTaskVault{
+			db: map[uint]Task{
+				taskIncomplete.ID: taskIncomplete,
+				taskComplete.ID:   taskComplete,
+			},
+			lastId: taskComplete.ID,
+		}
+
+		got := ListAllTasks(&vault)
+		assertNumberEqual(t, len(got), 2)
+		assertTasksEqual(t, got[0], taskIncomplete)
+		assertTasksEqual(t, got[1], taskComplete)
+	})
+	t.Run("List tasks empty vault", func(t *testing.T) {
+		vault := NewMapTaskVault()
+
+		got := ListAllTasks(vault)
+		assertNumberEqual(t, len(got), 0)
+	})
+}
+
+func TestListUnfinishedTasks(t *testing.T) {
+	timeProvider := DummyTimeProvider{}
+	timeProvider.timeStamp = time.Now()
+	t.Run("List unfinished tasks full vault", func(t *testing.T) {
+		taskIncomplete := Task{
+			ID:          998,
+			Description: "test",
+			CreatedAt:   timeProvider.timeStamp,
+			IsComplete:  false,
+		}
+		taskComplete := Task{
+			ID:          999,
+			Description: "test complete",
+			CreatedAt:   timeProvider.timeStamp,
+			IsComplete:  true,
+		}
+
+		vault := MapTaskVault{
+			db: map[uint]Task{
+				taskIncomplete.ID: taskIncomplete,
+				taskComplete.ID:   taskComplete,
+			},
+			lastId: taskComplete.ID,
+		}
+
+		got := ListUnfinishedTasks(&vault)
+		assertNumberEqual(t, len(got), 1)
+		assertTasksEqual(t, got[0], taskIncomplete)
+	})
+	t.Run("List unfinished tasks empty vault", func(t *testing.T) {
+		vault := NewMapTaskVault()
+
+		got := ListUnfinishedTasks(vault)
+		assertNumberEqual(t, len(got), 0)
+	})
+}
+
 func assertNoError(t testing.TB, err error) {
 	t.Helper()
 	if err != nil {
@@ -90,5 +165,12 @@ func assertTasksEqual(t testing.TB, got, want Task) {
 	t.Helper()
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("Want: %#v, but got: %#v", want, got)
+	}
+}
+
+func assertNumberEqual(t testing.TB, got, want int) {
+	t.Helper()
+	if got != want {
+		t.Fatalf("Want: %d, but got: %d", want, got)
 	}
 }
