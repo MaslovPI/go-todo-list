@@ -1,10 +1,13 @@
 package datalayer
 
-import "time"
+import (
+	"time"
+)
 
 const (
-	ErrNotFound         = VaultErr("Could not find task")
-	ErrTaskDoesNotExist = VaultErr("cannot perform operation on task because it does not exist")
+	ErrNotFound             = VaultErr("Could not find task")
+	ErrTaskDoesNotExist     = VaultErr("Cannot perform operation on task because it does not exist")
+	ErrTaskDescriptionEmpty = VaultErr("Task description cannot be empty")
 )
 
 type VaultErr string
@@ -20,7 +23,7 @@ type Task struct {
 	IsComplete  bool
 }
 
-type TimeProvder interface {
+type TimeProvider interface {
 	GetTimeStamp() time.Time
 }
 
@@ -41,9 +44,12 @@ type MapTaskVault struct {
 	lastId uint
 }
 
-func (m *MapTaskVault) init() {
-	m.db = make(map[uint]Task)
-	m.lastId = 0
+func NewMapTaskVault() *MapTaskVault {
+	vault := &MapTaskVault{
+		db:     make(map[uint]Task),
+		lastId: 0,
+	}
+	return vault
 }
 
 func (m *MapTaskVault) add(task Task) {
@@ -63,7 +69,11 @@ func (m *MapTaskVault) getNextId() uint {
 	return uint(m.lastId)
 }
 
-func AddTask(description string, vault TaskVault, timeProvider TimeProvder) uint {
+func AddTask(description string, vault TaskVault, timeProvider TimeProvider) (uint, error) {
+	if description == "" {
+		return 0, ErrTaskDescriptionEmpty
+	}
+
 	id := vault.getNextId()
 	task := Task{
 		ID:          id,
@@ -72,7 +82,7 @@ func AddTask(description string, vault TaskVault, timeProvider TimeProvder) uint
 		IsComplete:  false,
 	}
 	vault.add(task)
-	return id
+	return id, nil
 }
 
 func GetTask(id uint, vault TaskVault) (Task, error) {

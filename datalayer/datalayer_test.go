@@ -15,24 +15,31 @@ func (d *DummyTimeProvider) GetTimeStamp() time.Time {
 }
 
 func TestAdd(t *testing.T) {
-	vault := MapTaskVault{}
-	vault.init()
+	vault := NewMapTaskVault()
 	timeProvider := DummyTimeProvider{}
 	timeProvider.timeStamp = time.Now()
 
-	description := "test"
-	id := AddTask(description, &vault, &timeProvider)
+	t.Run("New task with description", func(t *testing.T) {
+		description := "test"
+		id, err := AddTask(description, vault, &timeProvider)
+		assertNoError(t, err)
+		got, err := GetTask(id, vault)
+		assertNoError(t, err)
 
-	got, err := GetTask(id, &vault)
-	assertNoError(t, err)
+		want := Task{
+			ID:          1,
+			Description: description,
+			CreatedAt:   timeProvider.timeStamp,
+			IsComplete:  false,
+		}
+		assertTasksEqual(t, got, want)
+	})
 
-	want := Task{
-		ID:          1,
-		Description: description,
-		CreatedAt:   timeProvider.timeStamp,
-		IsComplete:  false,
-	}
-	assertTasksEqual(t, got, want)
+	t.Run("New task without description", func(t *testing.T) {
+		description := ""
+		_, err := AddTask(description, vault, &timeProvider)
+		assertError(t, err, ErrTaskDescriptionEmpty)
+	})
 }
 
 func TestGet(t *testing.T) {
@@ -58,10 +65,9 @@ func TestGet(t *testing.T) {
 	})
 	t.Run("Task doesn't exists", func(t *testing.T) {
 		var id uint = 999
-		vault := MapTaskVault{}
-		vault.init()
+		vault := NewMapTaskVault()
 
-		_, err := GetTask(id, &vault)
+		_, err := GetTask(id, vault)
 		assertError(t, err, ErrNotFound)
 	})
 }
@@ -76,7 +82,7 @@ func assertNoError(t testing.TB, err error) {
 func assertError(t testing.TB, got, want error) {
 	t.Helper()
 	if got != want {
-		t.Errorf("got error %q want %q", got, want)
+		t.Fatalf("got error %q want %q", got, want)
 	}
 }
 
