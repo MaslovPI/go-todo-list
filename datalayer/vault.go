@@ -42,15 +42,13 @@ func (m *MapTaskVault) list() []Task {
 }
 
 func (m *MapTaskVault) listUnfinished() []Task {
-	return slices.Collect(func(yield func(Task) bool) {
-		for _, task := range slices.Collect(maps.Values(m.db)) {
-			if !task.IsComplete {
-				if !yield(task) {
-					return
-				}
-			}
+	result := make([]Task, 0, len(m.db))
+	for _, task := range m.db {
+		if !task.IsComplete {
+			result = append(result, task)
 		}
-	})
+	}
+	return result
 }
 
 func (m *MapTaskVault) delete(id uint) {
