@@ -27,7 +27,7 @@ func TestCsvRead(t *testing.T) {
 	}
 
 	reader := strings.NewReader(input)
-	got := CsvRead(reader)
+	got, _ := CsvRead(reader)
 	if !reflect.DeepEqual(want, got) {
 		t.Errorf("Want: %v, but got: %v", want, got)
 	}
@@ -35,7 +35,6 @@ func TestCsvRead(t *testing.T) {
 
 func generateTask(id uint, desctiption string, timeStr string, isComplete bool) Task {
 	layout := time.RFC3339
-
 	time, _ := time.Parse(layout, timeStr)
 	return Task{
 		ID:          id,
