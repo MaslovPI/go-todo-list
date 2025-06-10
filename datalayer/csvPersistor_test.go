@@ -1,8 +1,6 @@
 package datalayer
 
 import (
-	"reflect"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -46,9 +44,7 @@ func TestCsvRead(t *testing.T) {
 
 		reader := strings.NewReader(input)
 		got, _ := CsvRead(reader)
-		if !reflect.DeepEqual(want, got) {
-			t.Errorf("Want: %v, but got: %v", want, got)
-		}
+		assertMapVaultsEqual(t, want, got)
 	})
 
 	t.Run("Can't read csv", func(t *testing.T) {
@@ -64,10 +60,7 @@ NAN,My new task,2024-07-27T16:45:19-05:00,true`
 		reader := strings.NewReader(input)
 		_, err := CsvRead(reader)
 
-		_, ok := err.(*strconv.NumError)
-		if !ok {
-			t.Errorf("Expected NumError, got: %v", err)
-		}
+		assertNumError(t, err)
 	})
 
 	t.Run("read with incorrect date", func(t *testing.T) {
@@ -77,10 +70,7 @@ NAN,My new task,2024-07-27T16:45:19-05:00,true`
 		reader := strings.NewReader(input)
 		_, err := CsvRead(reader)
 
-		_, ok := err.(*time.ParseError)
-		if !ok {
-			t.Errorf("Expected ParseError, got: %v", err)
-		}
+		assertParseError(t, err)
 	})
 
 	t.Run("read with incorrect bool", func(t *testing.T) {
@@ -90,10 +80,7 @@ NAN,My new task,2024-07-27T16:45:19-05:00,true`
 		reader := strings.NewReader(input)
 		_, err := CsvRead(reader)
 
-		_, ok := err.(*strconv.NumError)
-		if !ok {
-			t.Errorf("Expected NumError, got: %v", err)
-		}
+		assertNumError(t, err)
 	})
 }
 
