@@ -1,6 +1,7 @@
 package datalayer
 
 import (
+	"cmp"
 	"maps"
 	"slices"
 )
@@ -38,12 +39,17 @@ func (m *MapTaskVault) get(id uint) (Task, bool) {
 }
 
 func (m *MapTaskVault) list() []Task {
-	return slices.Collect(maps.Values(m.db))
+	slice := slices.Collect(maps.Values(m.db))
+	slices.SortFunc(slice, func(a, b Task) int {
+		return cmp.Compare(a.ID, b.ID)
+	})
+	return slice
 }
 
 func (m *MapTaskVault) listUnfinished() []Task {
+	allTasks := m.list()
 	result := make([]Task, 0, len(m.db))
-	for _, task := range m.db {
+	for _, task := range allTasks {
 		if !task.IsComplete {
 			result = append(result, task)
 		}

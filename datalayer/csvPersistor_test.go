@@ -7,30 +7,54 @@ import (
 	"time"
 )
 
+const (
+	ErrReaderError = MockError("Error with reader")
+)
+
+type MockError string
+
+func (e MockError) Error() string {
+	return string(e)
+}
+
+type FaultyReader struct{}
+
+func (f FaultyReader) Read(p []byte) (n int, err error) {
+	return 0, ErrReaderError
+}
+
 func TestCsvRead(t *testing.T) {
-	input := `ID,Description,CreatedAt,IsComplete
+	t.Run("Read correct csv", func(t *testing.T) {
+		input := `ID,Description,CreatedAt,IsComplete
 1,My new task,2024-07-27T16:45:19-05:00,true
 2,Finish this video,2024-07-27T16:45:26-05:00,true
 3,Find a video editor,2024-07-27T16:45:31-05:00,false`
 
-	task1 := generateTask(1, "My new task", "2024-07-27T16:45:19-05:00", true)
-	task2 := generateTask(2, "Finish this video", "2024-07-27T16:45:26-05:00", true)
-	task3 := generateTask(3, "Find a video editor", "2024-07-27T16:45:31-05:00", false)
+		task1 := generateTask(1, "My new task", "2024-07-27T16:45:19-05:00", true)
+		task2 := generateTask(2, "Finish this video", "2024-07-27T16:45:26-05:00", true)
+		task3 := generateTask(3, "Find a video editor", "2024-07-27T16:45:31-05:00", false)
 
-	want := MapTaskVault{
-		db: map[uint]Task{
-			task1.ID: task1,
-			task2.ID: task2,
-			task3.ID: task3,
-		},
-		lastId: task3.ID,
-	}
+		want := MapTaskVault{
+			db: map[uint]Task{
+				task1.ID: task1,
+				task2.ID: task2,
+				task3.ID: task3,
+			},
+			lastId: task3.ID,
+		}
 
-	reader := strings.NewReader(input)
-	got, _ := CsvRead(reader)
-	if !reflect.DeepEqual(want, got) {
-		t.Errorf("Want: %v, but got: %v", want, got)
-	}
+		reader := strings.NewReader(input)
+		got, _ := CsvRead(reader)
+		if !reflect.DeepEqual(want, got) {
+			t.Errorf("Want: %v, but got: %v", want, got)
+		}
+	})
+
+	t.Run("Can't read csv", func(t *testing.T) {
+		reader := FaultyReader{}
+		_, err := CsvRead(reader)
+		assertError(t, err, ErrReaderError)
+	})
 }
 
 func generateTask(id uint, desctiption string, timeStr string, isComplete bool) Task {
