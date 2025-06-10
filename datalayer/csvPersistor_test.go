@@ -1,6 +1,7 @@
 package datalayer
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 	"time"
@@ -43,7 +44,8 @@ func TestCsvRead(t *testing.T) {
 		}
 
 		reader := strings.NewReader(input)
-		got, _ := CsvRead(reader)
+		got, err := CsvRead(reader)
+		assertNoError(t, err)
 		assertMapVaultsEqual(t, want, got)
 	})
 
@@ -84,8 +86,34 @@ NAN,My new task,2024-07-27T16:45:19-05:00,true`
 	})
 }
 
+func TestCsvWrite(t *testing.T) {
+	t.Run("Write correct csv", func(t *testing.T) {
+		task1 := generateTask(1, "My new task", "2024-07-27T16:45:19-05:00", true)
+		task2 := generateTask(2, "Finish this video", "2024-07-27T16:45:26-05:00", true)
+		task3 := generateTask(3, "Find a video editor", "2024-07-27T16:45:31-05:00", false)
+		input := MapTaskVault{
+			db: map[uint]Task{
+				task1.ID: task1,
+				task2.ID: task2,
+				task3.ID: task3,
+			},
+			lastId: task3.ID,
+		}
+
+		buf := new(bytes.Buffer)
+		err := CsvWrite(input, buf)
+		assertNoError(t, err)
+
+		got := buf.String()
+		want := `ID,Description,CreatedAt,IsComplete
+1,My new task,2024-07-27T16:45:19-05:00,true
+2,Finish this video,2024-07-27T16:45:26-05:00,true
+3,Find a video editor,2024-07-27T16:45:31-05:00,false`
+		assertStringEqual(t, got, want)
+	})
+}
+
 func generateTask(id uint, desctiption string, timeStr string, isComplete bool) Task {
-	layout := time.RFC3339
 	time, _ := time.Parse(layout, timeStr)
 	return Task{
 		ID:          id,

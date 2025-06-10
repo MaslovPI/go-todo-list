@@ -14,22 +14,31 @@ func CsvRead(reader io.Reader) (MapTaskVault, error) {
 	if err != nil {
 		return MapTaskVault{}, err
 	}
+
 	dictionary := make(map[uint]Task)
 	var maxId uint = 0
 	for i, each := range csvData {
 		if i == 0 {
 			continue
 		}
+
 		task, err := stringArrayToTask(each)
 		if err != nil {
 			return MapTaskVault{}, err
 		}
+
 		dictionary[task.ID] = task
+
 		if task.ID > maxId {
 			maxId = task.ID
 		}
 	}
+
 	return MapTaskVault{db: dictionary, lastId: maxId}, nil
+}
+
+func CsvWrite(vault MapTaskVault, writer io.Writer) error {
+	return nil
 }
 
 const layout = time.RFC3339

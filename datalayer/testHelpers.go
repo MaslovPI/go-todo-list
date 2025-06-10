@@ -35,6 +35,13 @@ func assertNumberEqual(t testing.TB, got, want int) {
 	}
 }
 
+func assertStringEqual(t testing.TB, got, want string) {
+	t.Helper()
+	if got != want {
+		t.Errorf("Want %q, but got %q", want, got)
+	}
+}
+
 func assertMapVaultsEqual(t testing.TB, want, got MapTaskVault) {
 	t.Helper()
 	if !reflect.DeepEqual(want, got) {
