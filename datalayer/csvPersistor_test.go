@@ -2,6 +2,7 @@ package datalayer
 
 import (
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -54,6 +55,45 @@ func TestCsvRead(t *testing.T) {
 		reader := FaultyReader{}
 		_, err := CsvRead(reader)
 		assertError(t, err, ErrReaderError)
+	})
+
+	t.Run("read with incorrect id", func(t *testing.T) {
+		input := `ID,Description,CreatedAt,IsComplete
+NAN,My new task,2024-07-27T16:45:19-05:00,true`
+
+		reader := strings.NewReader(input)
+		_, err := CsvRead(reader)
+
+		_, ok := err.(*strconv.NumError)
+		if !ok {
+			t.Errorf("Expected NumError, got: %v", err)
+		}
+	})
+
+	t.Run("read with incorrect date", func(t *testing.T) {
+		input := `ID,Description,CreatedAt,IsComplete
+1,My new task,notADate,true`
+
+		reader := strings.NewReader(input)
+		_, err := CsvRead(reader)
+
+		_, ok := err.(*time.ParseError)
+		if !ok {
+			t.Errorf("Expected ParseError, got: %v", err)
+		}
+	})
+
+	t.Run("read with incorrect bool", func(t *testing.T) {
+		input := `ID,Description,CreatedAt,IsComplete
+1,My new task,2024-07-27T16:45:19-05:00,notABool`
+
+		reader := strings.NewReader(input)
+		_, err := CsvRead(reader)
+
+		_, ok := err.(*strconv.NumError)
+		if !ok {
+			t.Errorf("Expected NumError, got: %v", err)
+		}
 	})
 }
 
