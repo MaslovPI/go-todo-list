@@ -1,6 +1,6 @@
 # Todo App
 
-This is a projec tinspires by: [goprojects](https://github.com/dreamsofcode-io/goprojects/blob/main/01-todo-list/README.md)
+This is a projec inspired by: [goprojects](https://github.com/dreamsofcode-io/goprojects/blob/main/01-todo-list/README.md)
 
 ## Goal
 
@@ -75,7 +75,7 @@ tasks
 
 ## Packages to use
 
-- [ ] `encoding/csv` for writing out as a csv file
+- [x] `encoding/csv` for writing out as a csv file
 - [ ] `strconv` for turning types into strings and visa versa
 - [ ] `text/tabwriter` for writing out tab aligned output
 - [ ] `os` for opening and reading files
