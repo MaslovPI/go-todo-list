@@ -38,7 +38,32 @@ func CsvRead(reader io.Reader) (MapTaskVault, error) {
 }
 
 func CsvWrite(vault MapTaskVault, writer io.Writer) error {
+	csvWriter := csv.NewWriter(writer)
+	csvWriter.Write(getTitleRow())
+	for _, task := range vault.list() {
+		record := taskToStringArray(task)
+		csvWriter.Write(record)
+	}
+	csvWriter.Flush()
 	return nil
+}
+
+func getTitleRow() []string {
+	result := make([]string, 4)
+	result[0] = "ID"
+	result[1] = "Description"
+	result[2] = "CreatedAt"
+	result[3] = "IsComplete"
+	return result
+}
+
+func taskToStringArray(task Task) []string {
+	result := make([]string, 4)
+	result[0] = strconv.Itoa(int(task.ID))
+	result[1] = task.Description
+	result[2] = task.CreatedAt.Format(layout)
+	result[3] = strconv.FormatBool(task.IsComplete)
+	return result
 }
 
 const layout = time.RFC3339

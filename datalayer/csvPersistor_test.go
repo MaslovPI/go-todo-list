@@ -108,7 +108,8 @@ func TestCsvWrite(t *testing.T) {
 		want := `ID,Description,CreatedAt,IsComplete
 1,My new task,2024-07-27T16:45:19-05:00,true
 2,Finish this video,2024-07-27T16:45:26-05:00,true
-3,Find a video editor,2024-07-27T16:45:31-05:00,false`
+3,Find a video editor,2024-07-27T16:45:31-05:00,false
+`
 		assertStringEqual(t, got, want)
 	})
 }
