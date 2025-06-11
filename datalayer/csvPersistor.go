@@ -37,7 +37,7 @@ func CsvRead(reader io.Reader) (MapTaskVault, error) {
 	return MapTaskVault{db: dictionary, lastId: maxId}, nil
 }
 
-func CsvWrite(vault MapTaskVault, writer io.Writer) error {
+func CsvWrite(vault MapTaskVault, writer io.Writer) {
 	csvWriter := csv.NewWriter(writer)
 	csvWriter.Write(getTitleRow())
 	for _, task := range vault.list() {
@@ -45,7 +45,6 @@ func CsvWrite(vault MapTaskVault, writer io.Writer) error {
 		csvWriter.Write(record)
 	}
 	csvWriter.Flush()
-	return nil
 }
 
 func getTitleRow() []string {
