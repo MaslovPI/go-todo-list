@@ -101,7 +101,8 @@ func TestCsvWrite(t *testing.T) {
 		}
 
 		buf := new(bytes.Buffer)
-		CsvWrite(input, buf)
+		err := CsvWrite(input, buf)
+		assertNoError(t, err)
 
 		got := buf.String()
 		want := `ID,Description,CreatedAt,IsComplete
@@ -118,7 +119,8 @@ func TestCsvWrite(t *testing.T) {
 		}
 
 		buf := new(bytes.Buffer)
-		CsvWrite(input, buf)
+		err := CsvWrite(input, buf)
+		assertNoError(t, err)
 
 		got := buf.String()
 		want := `ID,Description,CreatedAt,IsComplete
